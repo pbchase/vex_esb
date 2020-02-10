@@ -28,6 +28,10 @@ teams <- team_list %>%
 all_match_rankings <- map_dfr(teams$rankings_url, get_vexdb_query_result)
 all_team_names <- map_dfr(teams$teams_url, get_vexdb_query_result)
 
+# Write out query results
+write_csv(all_match_rankings, "output/all_match_rankings.csv")
+write_csv(all_team_names, "output/all_team_names.csv")
+
 # Summarize the stats by team
 team_stats <- all_match_rankings %>%
   group_by(team) %>%
@@ -43,8 +47,28 @@ team_stats <- all_match_rankings %>%
             min_ccwm = min(ccwm)
   ) %>%
   left_join(all_team_names, by=c("team" = "number")) %>%
+  arrange(team) %>%
+  mutate(division = case_when(
+    row_number() %% 2 == 1 ~ "odd",
+    TRUE ~ "even"
+  )) %>%
   arrange(desc(mean_ccwm)) %>%
-  select(team, team_name, mean_ccwm, match_count, contains("ccwm"), contains("opr"), contains("dpr"))
+  select(team, team_name, division, mean_ccwm, match_count, contains("ccwm"), contains("opr"), contains("dpr"))
+
+# Create datasets for each divisions
+odd_division <- team_stats %>%
+  filter(division == "odd")
+
+even_division <- team_stats %>%
+  filter(division == "even")
 
 # Output the report
+write_csv(odd_division, "output/odd_division.csv")
+write_csv(even_division, "output/even_division.csv")
+write_csv(team_stats, "output/team_stats.csv")
 View(team_stats)
+
+# Compare divisions
+team_stats %>%
+  group_by(division) %>%
+  summarise(total_mean_ccwm = sum(mean_ccwm), total_max_ccwm = sum(max_ccwm))
