@@ -18,7 +18,7 @@ get_rankings_query <- "https://api.vexdb.io/v1/get_rankings?team=3131V&season=To
 get_teams_query <- "https://api.vexdb.io/v1/get_teams?team=3131V"
 
 # Get the team list and generate the query URLs
-team_list <- read_csv("2020_north_florida_state_teams.csv")
+team_list <- read_csv("input/2020_north_florida_state_teams.csv")
 teams <- team_list %>%
   rename(team = Team) %>%
   mutate(rankings_url = str_replace(get_rankings_query, "3131V", team)) %>%
